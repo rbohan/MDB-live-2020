@@ -145,7 +145,7 @@ processData = async function()
     "sku": "$lineItems.sku",
     "cost": { "$toDecimal": { "$divide": [ "$lineItems.totalPriceCents", 100 ]}},
     "date": 1,
-    "dateTime": 1,
+    "datetime": 1,
     // "details": "$lineItems"
   }});
 
