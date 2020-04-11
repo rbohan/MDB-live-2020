@@ -16,7 +16,7 @@ exports = async function(){
     const doc = await JSON.parse(response.body.text());
     await collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
 
-    console.log('getdata success!');
+    console.log('getdata: success!');
   }
   catch (err) {
     console.log(`getdata failed: ${err}`);
