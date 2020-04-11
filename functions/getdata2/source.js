@@ -33,9 +33,9 @@ processData = async function()
 {
   console.log(`getdata2: processing data`);
   
-  var collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
-  var pipeline = [];
+  let pipeline = [];
   pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": true }});
   pipeline.push({ "$project": { "_id": 0 }});
   pipeline.push({ "$out": "details" });

@@ -77,9 +77,9 @@ processData = async function()
 {
   console.log(`getdata3: processing data`);
   
-  var collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
-  var pipeline = [];
+  let pipeline = [];
   
   pipeline.push({ "$lookup": {
     "from": "orgdata",
@@ -111,7 +111,7 @@ processData = async function()
     // "details": "$lineItems"
   }});
 
-  pipeline.push({ $out: "details" });
+  pipeline.push({ "$out": "details" });
 
   return collection.aggregate(pipeline).toArray();
 };
