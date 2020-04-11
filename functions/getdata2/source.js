@@ -16,7 +16,7 @@ exports = async function(){
 
 callAPI = async function(org, username, password)
 {
-  console.log('getdata2: calling the billing API');
+  console.log(`getdata2: calling the billing API`);
   
   const scheme = `https`;
   const host = `cloud.mongodb.com`;
@@ -31,14 +31,14 @@ callAPI = async function(org, username, password)
 
 processData = async function()
 {
-  console.log('getdata2: processing data');
+  console.log(`getdata2: processing data`);
   
-  var collection = context.services.get('mongodb-atlas').db('billing').collection('billingdata');
+  var collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
   var pipeline = [];
-  pipeline.push({ $unwind: { path: '$lineItems', preserveNullAndEmptyArrays: true }});
+  pipeline.push({ $unwind: { path: "$lineItems", preserveNullAndEmptyArrays: true }});
   pipeline.push({ $project: { _id: 0 }});
-  pipeline.push({ $out: 'details' });
+  pipeline.push({ $out: "details" });
 
   return collection.aggregate(pipeline).toArray();
 };
