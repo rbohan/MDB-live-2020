@@ -1,5 +1,5 @@
 {
     "name": "publicKey",
-    "value": "GTWXXIGG",
-    "from_secret": false
+    "value": "publicKeySecret",
+    "from_secret": true
 }
