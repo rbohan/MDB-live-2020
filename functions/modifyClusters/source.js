@@ -6,7 +6,6 @@ exports = function(body){
     const clusters = context.values.get(`auto-clusters`);
 
     let fns = [];
-    console.log("modifyClusters: " + (pause ? "Pausing clusters" : "Unpausing clusters"));
     clusters.forEach(function(cluster) {
       fns.push(modifyCluster(username, password, project, cluster, body));
     });
@@ -15,7 +14,7 @@ exports = function(body){
   catch (err) {
     console.error(`modifyClusters: ${err}`);
   }
-  return `modifyClusters: complete!`;
+  return;
 };
 
 modifyCluster = function(username, password, project, cluster, body) {
