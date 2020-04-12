@@ -1,0 +1,5 @@
+{
+    "name": "auto-project",
+    "value": "auto-projectSecret",
+    "from_secret": true
+}
