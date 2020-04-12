@@ -2,7 +2,7 @@
     "name": "pauseTrigger",
     "type": "SCHEDULED",
     "config": {
-        "schedule": "0 20/24 * * *"
+        "schedule": "0 20/24 * * MON-FRI"
     },
     "function_name": "pause",
     "disabled": false

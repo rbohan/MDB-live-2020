@@ -2,7 +2,7 @@
     "name": "unpauseTrigger",
     "type": "SCHEDULED",
     "config": {
-        "schedule": "0 8/24 * * *"
+        "schedule": "0 8/24 * * MON-FRI"
     },
     "function_name": "unpause",
     "disabled": false
