@@ -1,8 +1,8 @@
 exports = async function(){
   try {
-    const org =      context.values.get(`orgid`);
-    const username = context.values.get(`publicKey`);
-    const password = context.values.get(`privateKey`);
+    const org =      context.values.get(`billing-org`);
+    const username = context.values.get(`billing-username`);
+    const password = context.values.get(`billing-password`);
 
     // find the last date in our materialized output (so we know where we are)
     const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);
