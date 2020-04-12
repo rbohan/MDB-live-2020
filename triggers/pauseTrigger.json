@@ -1,0 +1,9 @@
+{
+    "name": "pauseTrigger",
+    "type": "SCHEDULED",
+    "config": {
+        "schedule": "0 20/24 * * *"
+    },
+    "function_name": "pause",
+    "disabled": false
+}

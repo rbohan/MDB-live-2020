@@ -1,0 +1,9 @@
+{
+    "name": "unpauseTrigger",
+    "type": "SCHEDULED",
+    "config": {
+        "schedule": "0 8/24 * * *"
+    },
+    "function_name": "unpause",
+    "disabled": false
+}
