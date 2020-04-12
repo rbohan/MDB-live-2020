@@ -107,8 +107,7 @@ processData = async function()
     "sku": "$lineItems.sku",
     "cost": { "$toDecimal": { "$divide": [ "$lineItems.totalPriceCents", 100 ]}},
     "date": { "$dateFromString": { dateString: "$lineItems.startDate" }},
-    "datetime": { "$split": ["$lineItems.startDate", "T"]},
-    // "details": "$lineItems"
+    "datetime": { "$split": ["$lineItems.startDate", "T"]}
   }});
 
   pipeline.push({ "$out": "details" });
