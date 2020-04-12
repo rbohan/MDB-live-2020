@@ -1,1 +1,1 @@
-# AtlasBilling
+# Atlas Billing & Automation
