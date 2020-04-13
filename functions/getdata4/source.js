@@ -12,7 +12,7 @@ exports = async function(){
     console.log(`getdata4: success!`);
   }
   catch (err) {
-    console.log(`getdata4 failed: ${err}`);
+    console.error(`getdata4 failed: ${err}`);
   }
 };
 

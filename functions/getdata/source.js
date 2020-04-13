@@ -13,8 +13,6 @@ exports = async function(){
       "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
     };
     
-    console.log(`getdata: calling the billing API`);
-
     const response = await context.http.get(args);
     const doc = await JSON.parse(response.body.text());
 
@@ -24,6 +22,6 @@ exports = async function(){
     console.log(`getdata: success!`);
   }
   catch (err) {
-    console.log(`getdata failed: ${err}`);
+    console.error(`getdata failed: ${err}`);
   }
 };
