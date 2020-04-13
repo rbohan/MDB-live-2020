@@ -4,16 +4,21 @@ exports = async function(){
     const username = context.values.get(`billing-username`);
     const password = context.values.get(`billing-password`);
   
-    const scheme = `https`;
-    const host = `cloud.mongodb.com`;
-    const path = `/api/atlas/v1.0/orgs/${org}/invoices/pending`;
-    
-    const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+    const args = {
+      "digestAuth": true,
+      "scheme": `https`,
+      "host": `cloud.mongodb.com`,
+      "username": username,
+      "password": password,
+      "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
+    };
     
     console.log(`getdata: calling the billing API`);
 
-    const response = await context.http.get({ digestAuth: true, scheme: scheme, host: host, username: username, password: password, path: path })
+    const response = await context.http.get(args);
     const doc = await JSON.parse(response.body.text());
+
+    const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
     await collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
 
     console.log(`getdata: success!`);

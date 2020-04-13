@@ -1,16 +1,12 @@
 exports = async function(){
   try {
-    const org =      context.values.get(`billing-org`);
-    const username = context.values.get(`billing-username`);
-    const password = context.values.get(`billing-password`);
-
     // find the last date in our materialized output (so we know where we are)
     const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);
     const dates = await collection.find({},{"date":1, "_id":0}).sort({"date": -1}).limit(1).toArray();
     const date = (dates.length && (dates[0].date instanceof Date) ? dates[0].date : undefined);
     console.log(`getdata4: date filter = ${date}`);
 
-    await callAPIs(org, username, password);
+    await callAPIs();
     await processData(date);
 
     console.log(`getdata4: success!`);
@@ -20,8 +16,12 @@ exports = async function(){
   }
 };
 
-callAPIs = async function(org, username, password)
+callAPIs = async function()
 {
+  const org =      context.values.get(`billing-org`);
+  const username = context.values.get(`billing-username`);
+  const password = context.values.get(`billing-password`);
+
   promises = [];
   promises.push(callBillingAPIs(org, username, password));
   promises.push(callOrgAPI(org, username, password));
@@ -33,29 +33,40 @@ callBillingAPIs = async function(org, username, password)
 {
   console.log(`getdata4: calling the billing APIs`);
   
-  const scheme = `https`;
-  const host = `cloud.mongodb.com`;
-  const path = `/api/atlas/v1.0/orgs/${org}/invoices`;
+  const args = {
+    "digestAuth": true,
+    "scheme": `https`,
+    "host": `cloud.mongodb.com`,
+    "username": username,
+    "password": password,
+    "path": `/api/atlas/v1.0/orgs/${org}/invoices`
+  };
   
-  const response = await context.http.get({ digestAuth: true, scheme: scheme, host: host, username: username, password: password, path: path });
+  const response = await context.http.get(args);
   const body = await JSON.parse(response.body.text());
+
   let promises = [];
   body.results.forEach(function(result) {
     promises.push(getInvoice(org, username, password, result.id));
-  })
+  });
   return Promise.all(promises);
 };
 
 getInvoice = async function(org, username, password, invoice)
 {
-  const scheme = `https`;
-  const host = `cloud.mongodb.com`;
-  const path = `/api/atlas/v1.0/orgs/${org}/invoices/${invoice}`;
+  const args = {
+    "digestAuth": true,
+    "scheme": `https`,
+    "host": `cloud.mongodb.com`,
+    "username": username,
+    "password": password,
+    "path": `/api/atlas/v1.0/orgs/${org}/invoices/${invoice}`
+  };
   
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
-
-  const response = await context.http.get({ digestAuth: true, scheme: scheme, host: host, username: username, password: password, path: path });
+  const response = await context.http.get(args);
   const doc = await JSON.parse(response.body.text());
+
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   return collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
 };
 
@@ -63,34 +74,43 @@ callOrgAPI = async function(org, username, password)
 {
   console.log(`getdata4: retrieving org name(s)`);
 
-  const scheme = `https`;
-  const host = `cloud.mongodb.com`;
-  const path = `/api/atlas/v1.0/orgs/${org}`;
+  const args = {
+    "digestAuth": true,
+    "scheme": `https`,
+    "host": `cloud.mongodb.com`,
+    "username": username,
+    "password": password,
+    "path": `/api/atlas/v1.0/orgs/${org}`
+  };
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
-  
-  const response = await context.http.get({ digestAuth: true, scheme: scheme, host: host, username: username, password: password, path: path });
+  const response = await context.http.get(args);
   const body = await JSON.parse(response.body.text());
-  const name = body.name;
-  return collection.updateOne({"_id": org}, {"_id": org, "name": name}, {"upsert": true});
+
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);  
+  return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
 }
 
 callProjectAPI = async function(org, username, password)
 {
   console.log(`getdata4: retrieving project name(s)`);
 
-  const scheme = `https`;
-  const host = `cloud.mongodb.com`;
-  const path = `/api/atlas/v1.0/orgs/${org}/groups`;
+  const args = {
+    "digestAuth": true,
+    "scheme": `https`,
+    "host": `cloud.mongodb.com`,
+    "username": username,
+    "password": password,
+    "path": `/api/atlas/v1.0/orgs/${org}/groups`
+  };
+  
+  const response = await context.http.get(args);
+  const body = await JSON.parse(response.body.text());
 
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
-  
-  const response = await context.http.get({ digestAuth: true, scheme: scheme, host: host, username: username, password: password, path: path });
-  const body = await JSON.parse(response.body.text());
   let promises = [];
   body.results.forEach(function(result) {
     promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}))
-  })
+  });
   return Promise.all(promises);
 }
 
