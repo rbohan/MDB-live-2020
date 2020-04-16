@@ -13,11 +13,11 @@ getData = async function()
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
   const args = {
-    "digestAuth": true,
     "scheme": `https`,
     "host": `cloud.mongodb.com`,
     "username": username,
     "password": password,
+    "digestAuth": true,
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
 

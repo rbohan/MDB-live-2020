@@ -27,11 +27,11 @@ getData = async function()
 getInvoices = async function(org, username, password)
 {
   const args = {
-    "digestAuth": true,
     "scheme": `https`,
     "host": `cloud.mongodb.com`,
     "username": username,
     "password": password,
+    "digestAuth": true,
     "path": `/api/atlas/v1.0/orgs/${org}/invoices`
   };
   
@@ -50,11 +50,11 @@ getInvoice = async function(org, username, password, invoice)
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
   const args = {
-    "digestAuth": true,
     "scheme": `https`,
     "host": `cloud.mongodb.com`,
     "username": username,
     "password": password,
+    "digestAuth": true,
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/${invoice}`
   };
   
@@ -69,11 +69,11 @@ getOrg = async function(org, username, password)
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);  
 
   const args = {
-    "digestAuth": true,
     "scheme": `https`,
     "host": `cloud.mongodb.com`,
     "username": username,
     "password": password,
+    "digestAuth": true,
     "path": `/api/atlas/v1.0/orgs/${org}`
   };
 
@@ -88,11 +88,11 @@ getProjects = async function(org, username, password)
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
 
   const args = {
-    "digestAuth": true,
     "scheme": `https`,
     "host": `cloud.mongodb.com`,
     "username": username,
     "password": password,
+    "digestAuth": true,
     "path": `/api/atlas/v1.0/orgs/${org}/groups`
   };
   
