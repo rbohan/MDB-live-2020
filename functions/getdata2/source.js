@@ -1,21 +1,16 @@
 exports = async function(){
-  try {
-    await callAPI();
-    await processData();
-    console.log(`getdata2: success!`);
-  }
-  catch (err) {
-    console.error(`getdata2 failed: ${err}`);
-  }
+  await getData();
+  await processData();
+  return {"status": "success!"};
 };
 
-callAPI = async function()
+getData = async function()
 {
-  console.log(`getdata2: calling the billing API`);
-  
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
   const password = context.values.get(`billing-password`);
+
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
   const args = {
     "digestAuth": true,
@@ -27,21 +22,20 @@ callAPI = async function()
   };
 
   const response = await context.http.get(args);
-  const doc = await JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"status": response.status};
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
-  return collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
+  const body = JSON.parse(response.body.text());
+  return collection.updateOne({ "id": body.id }, body, { "upsert": true });
 };
 
 processData = async function()
 {
-  console.log(`getdata2: processing data`);
-  
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+
   let pipeline = [];
   pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": true }});
   pipeline.push({ "$project": { "_id": 0 }});
   pipeline.push({ "$out": "details" });
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   return collection.aggregate(pipeline).toArray();
 };

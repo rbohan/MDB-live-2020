@@ -1,32 +1,26 @@
 exports = async function(){
-  try {
-    await callAPIs();
-    await processData();
-
-    console.log(`getdata3: success!`);
-  }
-  catch (err) {
-    console.error(`getdata3 failed: ${err}`);
-  }
+  await getData();
+  await processData();
+  return {"status": "success!"};
 };
 
-callAPIs = async function()
+getData = async function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
   const password = context.values.get(`billing-password`);
 
   promises = [];
-  promises.push(callBillingAPI(org, username, password));
-  promises.push(callOrgAPI(org, username, password));
-  promises.push(callProjectAPI(org, username, password));
+  promises.push(getInvoice(org, username, password));
+  promises.push(getOrg(org, username, password));
+  promises.push(getProjects(org, username, password));
   return Promise.all(promises);
 }
 
-callBillingAPI = async function(org, username, password)
+getInvoice = async function(org, username, password)
 {
-  console.log(`getdata3: calling the billing API`);
-  
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+
   const args = {
     "digestAuth": true,
     "scheme": `https`,
@@ -37,15 +31,14 @@ callBillingAPI = async function(org, username, password)
   };
   
   const response = await context.http.get(args);
-  const doc = await JSON.parse(response.body.text());
+  const body = JSON.parse(response.body.text());
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
-  return collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
+  return collection.updateOne({ "id": body.id }, body, { "upsert": true });
 };
 
-callOrgAPI = async function(org, username, password)
+getOrg = async function(org, username, password)
 {
-  console.log(`getdata3: retrieving the org name`);
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
 
   const args = {
     "digestAuth": true,
@@ -57,15 +50,14 @@ callOrgAPI = async function(org, username, password)
   };
   
   const response = await context.http.get(args);
-  const body = await JSON.parse(response.body.text());
+  const body = JSON.parse(response.body.text());
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
   return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
 }
 
-callProjectAPI = async function(org, username, password)
+getProjects = async function(org, username, password)
 {
-  console.log(`getdata3: retrieving project names`);
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
 
   const args = {
     "digestAuth": true,
@@ -77,11 +69,10 @@ callProjectAPI = async function(org, username, password)
   };
 
   const response = await context.http.get(args);
-  const body = await JSON.parse(response.body.text());
+  const body = JSON.parse(response.body.text());
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
   let promises = [];
-  body.results.forEach(function(result) {
+  body.results.forEach(result => {
     promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}))
   });
   return Promise.all(promises);
@@ -89,7 +80,7 @@ callProjectAPI = async function(org, username, password)
 
 processData = async function()
 {
-  console.log(`getdata3: processing data`);
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   
   let pipeline = [];
   
@@ -124,6 +115,5 @@ processData = async function()
 
   pipeline.push({ "$out": "details" });
 
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   return collection.aggregate(pipeline).toArray();
 };
