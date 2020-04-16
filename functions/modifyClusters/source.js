@@ -27,7 +27,8 @@ modifyCluster = async function(username, password, project, cluster, body) {
   
   return context.http.patch(arg)
     .then(response => {
-      if (response.statusCode != 200) throw JSON.stringify({"error": JSON.parse(response.body.text()).detail});
+      const body = JSON.parse(response.body.text());
+      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       console.log(`- ${cluster}: ` + response.body.text());
     });
 };

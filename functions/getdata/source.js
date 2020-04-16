@@ -15,9 +15,9 @@ exports = async function(){
   };
 
   const response = await context.http.get(args);
-  if (response.statusCode != 200) throw {"status": response.status};
-
   const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+
   await collection.updateOne({ "id": body.id }, body, { "upsert": true });
 
   return {"status": "success!"};

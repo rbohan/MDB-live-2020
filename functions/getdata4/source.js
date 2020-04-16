@@ -37,6 +37,7 @@ getInvoices = async function(org, username, password)
   
   const response = await context.http.get(args);
   const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
 
   let promises = [];
   body.results.forEach(result => {
@@ -59,9 +60,10 @@ getInvoice = async function(org, username, password, invoice)
   };
   
   const response = await context.http.get(args);
-  const doc = JSON.parse(response.body.text());
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
 
-  return collection.updateOne({ "id": doc.id }, doc, { "upsert": true });
+  return collection.updateOne({ "id": body.id }, body, { "upsert": true });
 };
 
 getOrg = async function(org, username, password)
@@ -79,6 +81,7 @@ getOrg = async function(org, username, password)
 
   const response = await context.http.get(args);
   const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
 
   return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
 }
@@ -98,6 +101,7 @@ getProjects = async function(org, username, password)
   
   const response = await context.http.get(args);
   const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
 
   let promises = [];
   body.results.forEach(result => {
