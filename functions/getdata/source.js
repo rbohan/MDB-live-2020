@@ -1,4 +1,6 @@
-exports = function(){
+// version 1: grabs the 'pending' invoice & stores it in the 'billingdata' collection
+exports = function()
+{
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
   const password = context.values.get(`billing-password`);

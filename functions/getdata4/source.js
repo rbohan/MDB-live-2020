@@ -1,4 +1,12 @@
-exports = function(){
+// version 4: grabs all invoice data & stores it in the 'billingdata' collection
+// also grabs org & project data to augment the invoice data with org & project names
+// aggregation used to unwind the 'lineItems' field
+// additional projection stages used to reshape the output document
+// additional fields added in the pipeline to categorize the data
+// resulting data stored in the 'details' collection via a '$merge' aggregation stage
+// additional verification step to check no duplicate data created
+exports = function()
+{
   // find the last date in our materialized output (so we know where we are)
   // need to do this before we update any data!
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);

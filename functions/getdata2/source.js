@@ -1,4 +1,8 @@
-exports = function(){
+// version 2: grabs the 'pending' invoice & stores it in the 'billingdata' collection
+// aggregation used to unwind the 'lineItems' field
+// resulting data stored in the 'details' collection via a '$out' aggregation stage
+exports = function()
+{
   return getData()
     .then(() => { return processData(); })
     .then(() => { return {"status": "success!"}; });
