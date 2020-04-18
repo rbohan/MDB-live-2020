@@ -1,10 +1,12 @@
 // version 4: grabs all invoice data & stores it in the 'billingdata' collection
 // also grabs org & project data to augment the invoice data with org & project names
 // aggregation used to unwind the 'lineItems' field
+// additional match stages used to filter out old data
 // additional projection stages used to reshape the output document
 // additional fields added in the pipeline to categorize the data
 // resulting data stored in the 'details' collection via a '$merge' aggregation stage
 // additional verification step to check no duplicate data created
+// note: for best performance add an index on the 'date' field (descending) in the 'details' collection
 exports = function()
 {
   // find the last date in our materialized output (so we know where we are)
