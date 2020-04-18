@@ -1,7 +1,7 @@
 exports = function(){
   return getData()
     .then(() => { return processData(); })
-    .then(() => { return {"status": "success!"}; });
+    .then(result => { return {"status": "success!", "result": result}; });
 };
 
 getData = function()
@@ -25,7 +25,7 @@ getData = function()
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+      return collection.updateOne({"id": body.id}, body, {"upsert": true});
     });
 };
 

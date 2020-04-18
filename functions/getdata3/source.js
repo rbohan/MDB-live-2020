@@ -1,7 +1,7 @@
 exports = function(){
   return getData()
     .then(() => { return processData(); })
-    .then(() => { return {"status": "success!"}; });
+    .then(result => { return {"status": "success!", "result": result}; });
 };
 
 getData = function()
@@ -11,9 +11,9 @@ getData = function()
   const password = context.values.get(`billing-password`);
 
   const promises = [
-    getInvoice(org, username, password),
-    getOrg(org, username, password),
-    getProjects(org, username, password),
+    getInvoice(org, username, password).catch(err => { return err; }),
+    getOrg(org, username, password).catch(err => { return err; }),
+    getProjects(org, username, password).catch(err => { return err; }),
   ];
   return Promise.all(promises);
 };
@@ -35,7 +35,7 @@ getInvoice = function(org, username, password)
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+      return collection.updateOne({"id": body.id}, body, {"upsert": true});
     });
 };
 
@@ -79,7 +79,8 @@ getProjects = function(org, username, password)
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       let promises = [];
       body.results.forEach(result => {
-        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}));
+        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true})
+          .catch(err => { return err; }),);
       });
       return Promise.all(promises);
     });

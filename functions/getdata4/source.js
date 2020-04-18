@@ -9,7 +9,7 @@ exports = function(){
       return getData()
         .then(() => { return processData(date); });
     })
-    .then(() => { return {"status": "success!"}; });
+    .then(result => { return {"status": "success!", "result": result}; });
 };
 
 getData = function()
@@ -19,9 +19,9 @@ getData = function()
   const password = context.values.get(`billing-password`);
 
   const promises = [
-    getInvoices(org, username, password),
-    getOrg(org, username, password),
-    getProjects(org, username, password),
+    getInvoices(org, username, password).catch(err => { return err; }),
+    getOrg(org, username, password).catch(err => { return err; }),
+    getProjects(org, username, password).catch(err => { return err; }),
   ];
   return Promise.all(promises);
 };
@@ -43,7 +43,8 @@ getInvoices = function(org, username, password)
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       let promises = [];
       body.results.forEach(result => {
-        promises.push(getInvoice(org, username, password, result.id));
+        promises.push(getInvoice(org, username, password, result.id)
+          .catch(err => { return err; }));
       });
       return Promise.all(promises);
     });
@@ -66,7 +67,7 @@ getInvoice = function(org, username, password, invoice)
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+      return collection.updateOne({"id": body.id}, body, {"upsert": true});
     });
 };
 
@@ -110,7 +111,8 @@ getProjects = function(org, username, password)
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       let promises = [];
       body.results.forEach(result => {
-        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}));
+        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true})
+          .catch(err => { return err; }));
       });
       return Promise.all(promises);
     });
