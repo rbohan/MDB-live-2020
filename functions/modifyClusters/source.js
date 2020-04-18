@@ -1,9 +1,6 @@
-exports = function(body){
-  const project = context.values.get(`auto-project`);
-  const username = context.values.get(`auto-username`);
-  const password = context.values.get(`auto-password`);
-  const clusters = context.values.get(`auto-clusters`);
-
+// main worker function which modifies clusters according to the details in the 'body' input parameter
+exports = function(project, username, password, clusters, body)
+{
   let promises = [];
   clusters.forEach(cluster => {
     // add a catch as we do not want the Promise to terminate early on error
