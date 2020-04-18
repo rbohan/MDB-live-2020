@@ -1,4 +1,4 @@
-exports = async function(body){
+exports = function(body){
   const project = context.values.get(`auto-project`);
   const username = context.values.get(`auto-username`);
   const password = context.values.get(`auto-password`);
@@ -6,15 +6,16 @@ exports = async function(body){
 
   let promises = [];
   clusters.forEach(cluster => {
-    promises.push(modifyCluster(username, password, project, cluster, body));
+    // add a catch as we do not want the Promise to terminate early on error
+    promises.push(modifyCluster(username, password, project, cluster, body)
+      .catch(err => { return { "cluster": cluster, "error": err.message }; }));
   });
-  await Promise.all(promises);
-
-  return {"status": "success!"};
+  return Promise.all(promises)
+    .then(results => { return { "status": "success!", "results": results }; });
 };
 
-modifyCluster = async function(username, password, project, cluster, body) {
-  const arg = { 
+modifyCluster = function(username, password, project, cluster, body) {
+  const args = { 
     "scheme": `https`, 
     "host": `cloud.mongodb.com`, 
     "path": `api/atlas/v1.0/groups/${project}/clusters/${cluster}`, 
@@ -25,10 +26,10 @@ modifyCluster = async function(username, password, project, cluster, body) {
     "body": JSON.stringify(body)
   };
   
-  return context.http.patch(arg)
+  return context.http.patch(args)
     .then(response => {
       const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      console.log(`- ${cluster}: ` + response.body.text());
+      if (response.statusCode != 200) throw body.detail;
+      return { "cluster": cluster, "response": JSON.parse(response.body.text()) };
     });
 };
