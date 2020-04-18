@@ -1,10 +1,10 @@
-exports = async function(){
-  await getData();
-  await processData();
-  return {"status": "success!"};
+exports = function(){
+  return getData()
+    .then(() => { return processData(); })
+    .then(() => { return {"status": "success!"}; });
 };
 
-getData = async function()
+getData = function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
@@ -21,14 +21,15 @@ getData = async function()
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
 
-  const response = await context.http.get(args);
-  const body = JSON.parse(response.body.text());
-  if (response.statusCode != 200) throw {"error": body.detail};
-
-  return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+  return context.http.get(args)
+    .then(response => {
+      const body = JSON.parse(response.body.text());
+      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
+      return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+    });
 };
 
-processData = async function()
+processData = function()
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 

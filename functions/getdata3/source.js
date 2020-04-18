@@ -1,23 +1,24 @@
-exports = async function(){
-  await getData();
-  await processData();
-  return {"status": "success!"};
+exports = function(){
+  return getData()
+    .then(() => { return processData(); })
+    .then(() => { return {"status": "success!"}; });
 };
 
-getData = async function()
+getData = function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
   const password = context.values.get(`billing-password`);
 
-  promises = [];
-  promises.push(getInvoice(org, username, password));
-  promises.push(getOrg(org, username, password));
-  promises.push(getProjects(org, username, password));
+  const promises = [
+    getInvoice(org, username, password),
+    getOrg(org, username, password),
+    getProjects(org, username, password),
+  ];
   return Promise.all(promises);
-}
+};
 
-getInvoice = async function(org, username, password)
+getInvoice = function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
@@ -30,14 +31,15 @@ getInvoice = async function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
   
-  const response = await context.http.get(args);
-  const body = JSON.parse(response.body.text());
-  if (response.statusCode != 200) throw {"error": body.detail};
-
-  return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+  return context.http.get(args)
+    .then(response => {
+      const body = JSON.parse(response.body.text());
+      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
+      return collection.updateOne({ "id": body.id }, body, { "upsert": true });
+    });
 };
 
-getOrg = async function(org, username, password)
+getOrg = function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
 
@@ -50,14 +52,15 @@ getOrg = async function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}`
   };
   
-  const response = await context.http.get(args);
-  const body = JSON.parse(response.body.text());
-  if (response.statusCode != 200) throw {"error": body.detail};
+  return context.http.get(args)
+    .then(response => {
+      const body = JSON.parse(response.body.text());
+      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
+      return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
+    });
+};
 
-  return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
-}
-
-getProjects = async function(org, username, password)
+getProjects = function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
 
@@ -70,18 +73,19 @@ getProjects = async function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/groups`
   };
 
-  const response = await context.http.get(args);
-  const body = JSON.parse(response.body.text());
-  if (response.statusCode != 200) throw {"error": body.detail};
+  return context.http.get(args)
+    .then(response => {
+      const body = JSON.parse(response.body.text());
+      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
+      let promises = [];
+      body.results.forEach(result => {
+        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}));
+      });
+      return Promise.all(promises);
+    });
+};
 
-  let promises = [];
-  body.results.forEach(result => {
-    promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, { "upsert": true}))
-  });
-  return Promise.all(promises);
-}
-
-processData = async function()
+processData = function()
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   
@@ -113,7 +117,6 @@ processData = async function()
     "sku": "$lineItems.sku",
     "cost": { "$toDecimal": { "$divide": [ "$lineItems.totalPriceCents", 100 ]}},
     "date": { "$dateFromString": { dateString: "$lineItems.startDate" }},
-    "datetime": { "$split": ["$lineItems.startDate", "T"]}
   }});
 
   pipeline.push({ "$out": "details" });
