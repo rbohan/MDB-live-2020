@@ -14,7 +14,7 @@ exports = function(){
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
 
-  context.http.get(args)
+  return context.http.get(args)
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
