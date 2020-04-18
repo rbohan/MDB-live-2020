@@ -1,7 +1,7 @@
 exports = function(){
   return getData()
     .then(() => { return processData(); })
-    .then(result => { return {"status": "success!", "result": result}; });
+    .then(() => { return {"status": "success!"}; });
 };
 
 getData = function()

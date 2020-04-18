@@ -20,5 +20,5 @@ exports = function(){
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       return collection.updateOne({"id": body.id}, body, {"upsert": true});
     })
-    .then(result => { return {"status": "success!", "result": result}; });
+    .then(() => { return {"status": "success!"}; });
 };
