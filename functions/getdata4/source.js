@@ -167,8 +167,86 @@ processData = function(date)
     "sku": "$lineItems.sku",
     "cost": { "$toDecimal": { "$divide": [ "$lineItems.totalPriceCents", 100 ]}},
     "date": 1,
+    "provider": {
+      "$switch": {
+        "branches": [
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "AWS" }},
+            "then": "AWS"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "AZURE" }},
+            "then": "AZURE"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "GCP" }},
+            "then": "GCP"
+          },
+        ],
+        "default": "n/a"
+      }
+    },
+    "instance": { "$ifNull": [{ "$arrayElemAt": [ { "$split": ["$lineItems.sku", "_INSTANCE_"] }, 1 ] }, "non-instance"]},
+    "category": {
+      "$switch": {
+        "branches": [
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "_INSTANCE" }},
+            "then": "instances"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "BACKUP" }},
+            "then": "backup"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "PIT_RESTORE" }},
+            "then": "backup"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "DATA_TRANSFER" }},
+            "then": "data xfer"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "STORAGE" }},
+            "then": "storage"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "BI_CONNECTOR" }},
+            "then": "bi connector"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "DATA_LAKE" }},
+            "then": "data lake"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "AUDITING" }},
+            "then": "audit"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "FREE_SUPPORT" }},
+            "then": "free support"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "CHARTS" }},
+            "then": "charts"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "STITCH" }},
+            "then": "stitch"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "SECURITY" }},
+            "then": "security"
+          },
+          {
+            "case": { "$regexMatch": { "input": "$lineItems.sku", "regex": "PRIVATE_ENDPOINT" }},
+            "then": "private endpoint"
+          },
+        ],
+        "default": "other"
+      }
+    },
   }});
-
   pipeline.push({ "$merge": { "into": "details" }});
 
   return collection.aggregate(pipeline).toArray();
