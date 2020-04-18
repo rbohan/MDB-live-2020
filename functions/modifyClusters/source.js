@@ -4,14 +4,14 @@ exports = function(project, username, password, clusters, body)
   let promises = [];
   clusters.forEach(cluster => {
     // add a catch as we do not want the Promise to terminate early on error
-    promises.push(modifyCluster(username, password, project, cluster, body)
+    promises.push(modifyCluster(project, username, password, cluster, body)
       .catch(err => { return { "cluster": cluster, "error": err.message }; }));
   });
   return Promise.all(promises)
     .then(results => { return { "status": "success!", "results": results }; });
 };
 
-modifyCluster = function(username, password, project, cluster, body) {
+modifyCluster = function(project, username, password, cluster, body) {
   const args = { 
     "scheme": `https`, 
     "host": `cloud.mongodb.com`, 
