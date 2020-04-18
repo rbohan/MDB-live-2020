@@ -98,9 +98,11 @@ processData = function()
     "foreignField": "_id",
     "as": "orgdata"
   }});
+  // some records may not have an org so need to preserve them
   pipeline.push({ "$unwind": { "path": "$orgdata", "preserveNullAndEmptyArrays": true }});
 
-  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": true }});
+  // not interested in empty lineItem records
+  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": false }});
   
   pipeline.push({ "$lookup": {
     "from": "projectdata",
@@ -108,6 +110,7 @@ processData = function()
     "foreignField": "_id",
     "as": "projectdata"
   }});
+  // some records may not have a project so need to preserve them
   pipeline.push({ "$unwind": { "path": "$projectdata", "preserveNullAndEmptyArrays": true }});
 
   pipeline.push({ "$project": {

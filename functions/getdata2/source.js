@@ -34,7 +34,8 @@ processData = function()
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
   let pipeline = [];
-  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": true }});
+  // not interested in empty lineItem records
+  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": false }});
   pipeline.push({ "$project": { "_id": 0 }});
   pipeline.push({ "$out": "details" });
 

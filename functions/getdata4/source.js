@@ -7,9 +7,10 @@ exports = function(){
       const date = (dates.length && (dates[0].date instanceof Date) ? dates[0].date : undefined);
       // console.log(`getdata4: date filter = ${date}`);
       return getData()
-        .then(() => { return processData(date); });
+        .then(() => { return processData(date); })
+        .then(() => { return verifyData(date); });
     })
-    .then(() => { return {"status": "success!"} });
+    .then(result => { return {"status": (result ? "success!" : "failed")} });
 };
 
 getData = function()
@@ -138,15 +139,15 @@ processData = function(date)
     "foreignField": "_id",
     "as": "orgdata"
   }});
+  // some records may not have an org so need to preserve them
   pipeline.push({ "$unwind": { "path": "$orgdata", "preserveNullAndEmptyArrays": true }});
 
-  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": true }});
-  pipeline.push({ "$addFields": {
-    "date": { "$dateFromString": { dateString: "$lineItems.startDate" }},
-  }});
+  // not interested in empty lineItem records
+  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": false }});
 
   // only process the new data
   // (where the date is greater than the last one we've processed)
+  pipeline.push({ "$addFields": { "date": { "$dateFromString": { dateString: "$lineItems.startDate" }}}});
   if (date instanceof Date) {
     pipeline.push({ "$match": { "date": { "$gt": date }}});
   }
@@ -157,6 +158,7 @@ processData = function(date)
     "foreignField": "_id",
     "as": "projectdata"
   }});
+  // some records may not have a project so need to preserve them
   pipeline.push({ "$unwind": { "path": "$projectdata", "preserveNullAndEmptyArrays": true }});
 
   pipeline.push({ "$project": {
@@ -172,4 +174,31 @@ processData = function(date)
   pipeline.push({ "$merge": { "into": "details" }});
 
   return collection.aggregate(pipeline).toArray();
+};
+
+verifyData = function()
+{
+  // make sure the number of docs in the lineItems array matches the data in the details collection
+  return Promise.all([countSrc(), countDst()])
+    .then(function(results) {
+      return results[0] == results[1];
+    });
+};
+
+countSrc = function()
+{
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
+  let pipeline = [];
+  pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": false }});
+  pipeline.push({ "$count": "id" });
+  return collection.aggregate(pipeline).toArray()
+    .then(docs => {
+      return docs[0].id;
+    });
+};
+
+countDst = function()
+{
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);
+  return collection.count({});
 };
