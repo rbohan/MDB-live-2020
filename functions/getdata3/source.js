@@ -11,9 +11,9 @@ getData = function()
   const password = context.values.get(`billing-password`);
 
   const promises = [
-    getInvoice(org, username, password).catch(err => { return err; }),
-    getOrg(org, username, password).catch(err => { return err; }),
-    getProjects(org, username, password).catch(err => { return err; }),
+    getInvoice(org, username, password),
+    getOrg(org, username, password),
+    getProjects(org, username, password),
   ];
   return Promise.all(promises);
 };
@@ -79,8 +79,7 @@ getProjects = function(org, username, password)
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       let promises = [];
       body.results.forEach(result => {
-        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true})
-          .catch(err => { return err; }),);
+        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
       });
       return Promise.all(promises);
     });
