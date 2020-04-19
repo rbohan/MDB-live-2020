@@ -27,6 +27,6 @@ modifyCluster = function(project, username, password, cluster, body) {
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw body.detail;
-      return { "cluster": cluster, "response": JSON.parse(response.body.text()) };
+      return { "cluster": cluster, "response": body };
     });
 };
