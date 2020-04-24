@@ -41,7 +41,7 @@ getInvoice = function(org, username, password)
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({"id": body.id}, body, {"upsert": true});
+      return collection.replaceOne({"id": body.id}, body, {"upsert": true});
     });
 };
 
@@ -62,7 +62,7 @@ getOrg = function(org, username, password)
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
+      return collection.replaceOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
     });
 };
 
@@ -85,7 +85,7 @@ getProjects = function(org, username, password)
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
       let promises = [];
       body.results.forEach(result => {
-        promises.push(collection.updateOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
+        promises.push(collection.replaceOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
       });
       return Promise.all(promises);
     });

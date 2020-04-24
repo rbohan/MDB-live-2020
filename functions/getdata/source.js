@@ -20,7 +20,7 @@ exports = function()
     .then(response => {
       const body = JSON.parse(response.body.text());
       if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.updateOne({"id": body.id}, body, {"upsert": true});
+      return collection.replaceOne({"id": body.id}, body, {"upsert": true});
     })
     .then(() => { return {"status": "success!"}; });
 };
