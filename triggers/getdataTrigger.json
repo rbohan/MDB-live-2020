@@ -5,5 +5,5 @@
         "schedule": "0 4/24 * * *"
     },
     "function_name": "getdata4",
-    "disabled": false
+    "disabled": true
 }
