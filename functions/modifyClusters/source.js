@@ -19,7 +19,7 @@ modifyCluster = function(project, username, password, cluster, body) {
     "username": username, 
     "password": password,
     "digestAuth": true,
-    "headers": { "Content-Type": ["application/json"], "Accept-Encoding": ["bzip, deflate"] }, 
+    "headers": { "Content-Type": ["application/json"] }, 
     "body": JSON.stringify(body)
   };
   
