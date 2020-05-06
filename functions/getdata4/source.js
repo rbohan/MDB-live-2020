@@ -7,23 +7,20 @@
 // resulting data stored in the 'details' collection via a '$merge' aggregation stage
 // additional verification step to check no duplicate data created
 // note: for best performance add an index on the 'date' field (descending) in the 'details' collection
-exports = function()
+exports = async function()
 {
   // find the last date in our materialized output (so we know where we are)
   // need to do this before we update any data!
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);
-  return collection.find({},{"date":1, "_id":0}).sort({"date": -1}).limit(1).toArray()
-    .then(dates => {
-      const date = (dates.length && (dates[0].date instanceof Date) ? dates[0].date : undefined);
-      // console.log(`getdata4: date filter = ${date}`);
-      return getData()
-        .then(() => { return processData(date); })
-        .then(() => { return verifyData(date); });
-    })
-    .then(result => { return {"status": (result ? "success!" : "failed")} });
+  const dates = await collection.find({},{"date":1, "_id":0}).sort({"date": -1}).limit(1).toArray();
+  const date = (dates.length && (dates[0].date instanceof Date) ? dates[0].date : undefined);
+  // console.log(`getdata4: date filter = ${date}`);
+  await getData();
+  await processData(date);
+  return {"status": (await verifyData() ? "success!" : "failed")};
 };
 
-getData = function()
+getData = async function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
@@ -37,7 +34,7 @@ getData = function()
   return Promise.all(promises);
 };
 
-getInvoices = function(org, username, password)
+getInvoices = async function(org, username, password)
 {
   const args = {
     "scheme": `https`,
@@ -48,19 +45,17 @@ getInvoices = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/invoices`
   };
   
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      let promises = [];
-      body.results.forEach(result => {
-        promises.push(getInvoice(org, username, password, result.id));
-      });
-      return Promise.all(promises);
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  let promises = [];
+  body.results.forEach(result => {
+    promises.push(getInvoice(org, username, password, result.id));
+  });
+  return Promise.all(promises);
 };
 
-getInvoice = function(org, username, password, invoice)
+getInvoice = async function(org, username, password, invoice)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
@@ -73,17 +68,15 @@ getInvoice = function(org, username, password, invoice)
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/${invoice}`
   };
   
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.replaceOne({"id": body.id}, body, {"upsert": true});
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  return collection.replaceOne({"id": body.id}, body, {"upsert": true});
 };
 
-getOrg = function(org, username, password)
+getOrg = async function(org, username, password)
 {
-  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);  
+  const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
 
   const args = {
     "scheme": `https`,
@@ -94,15 +87,13 @@ getOrg = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}`
   };
 
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.replaceOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  return collection.replaceOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
 };
 
-getProjects = function(org, username, password)
+getProjects = async function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
 
@@ -115,19 +106,17 @@ getProjects = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/groups`
   };
   
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      let promises = [];
-      body.results.forEach(result => {
-        promises.push(collection.replaceOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
-      });
-      return Promise.all(promises);
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  let promises = [];
+  body.results.forEach(result => {
+    promises.push(collection.replaceOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
+  });
+  return Promise.all(promises);
 };
 
-processData = function(date)
+processData = async function(date)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
@@ -262,28 +251,24 @@ processData = function(date)
   return collection.aggregate(pipeline).toArray();
 };
 
-verifyData = function()
+verifyData = async function()
 {
   // make sure the number of docs in the lineItems array matches the data in the details collection
-  return Promise.all([countSrc(), countDst()])
-    .then(function(results) {
-      return results[0] == results[1];
-    });
+  const results = await Promise.all([countSrc(), countDst()]);
+  return results[0] == results[1];
 };
 
-countSrc = function()
+countSrc = async function()
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   let pipeline = [];
   pipeline.push({ "$unwind": { "path": "$lineItems", "preserveNullAndEmptyArrays": false }});
   pipeline.push({ "$count": "id" });
-  return collection.aggregate(pipeline).toArray()
-    .then(docs => {
-      return docs[0].id;
-    });
+  const docs = await collection.aggregate(pipeline).toArray();
+  return docs[0].id;
 };
 
-countDst = function()
+countDst = async function()
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`details`);
   return collection.count({});

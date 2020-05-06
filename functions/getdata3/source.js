@@ -3,14 +3,14 @@
 // aggregation used to unwind the 'lineItems' field
 // additional projection stages used to reshape the output document
 // resulting data stored in the 'details' collection via a '$out' aggregation stage
-exports = function()
+exports = async function()
 {
-  return getData()
-    .then(() => { return processData(); })
-    .then(() => { return {"status": "success!"}; });
+  await getData();
+  await processData();
+  return {"status": "success!"};
 };
 
-getData = function()
+getData = async function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
@@ -24,7 +24,7 @@ getData = function()
   return Promise.all(promises);
 };
 
-getInvoice = function(org, username, password)
+getInvoice = async function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
 
@@ -37,15 +37,13 @@ getInvoice = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
   
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.replaceOne({"id": body.id}, body, {"upsert": true});
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  return collection.replaceOne({"id": body.id}, body, {"upsert": true});
 };
 
-getOrg = function(org, username, password)
+getOrg = async function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`orgdata`);
 
@@ -58,15 +56,13 @@ getOrg = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}`
   };
   
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.replaceOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  return collection.replaceOne({"_id": org}, {"_id": org, "name": body.name}, {"upsert": true});
 };
 
-getProjects = function(org, username, password)
+getProjects = async function(org, username, password)
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`projectdata`);
 
@@ -79,19 +75,17 @@ getProjects = function(org, username, password)
     "path": `/api/atlas/v1.0/orgs/${org}/groups`
   };
 
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      let promises = [];
-      body.results.forEach(result => {
-        promises.push(collection.replaceOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
-      });
-      return Promise.all(promises);
-    });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  let promises = [];
+  body.results.forEach(result => {
+    promises.push(collection.replaceOne({"_id": result.id}, {"_id": result.id, "name": result.name}, {"upsert": true}));
+  });
+  return Promise.all(promises);
 };
 
-processData = function()
+processData = async function()
 {
   const collection = context.services.get(`mongodb-atlas`).db(`billing`).collection(`billingdata`);
   

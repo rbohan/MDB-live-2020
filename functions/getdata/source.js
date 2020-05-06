@@ -1,5 +1,5 @@
 // version 1: grabs the 'pending' invoice & stores it in the 'billingdata' collection
-exports = function()
+exports = async function()
 {
   const org =      context.values.get(`billing-org`);
   const username = context.values.get(`billing-username`);
@@ -16,11 +16,9 @@ exports = function()
     "path": `/api/atlas/v1.0/orgs/${org}/invoices/pending`
   };
 
-  return context.http.get(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw JSON.stringify({"error": body.detail});
-      return collection.replaceOne({"id": body.id}, body, {"upsert": true});
-    })
-    .then(() => { return {"status": "success!"}; });
+  const response = await context.http.get(args);
+  const body = JSON.parse(response.body.text());
+  if (response.statusCode != 200) throw {"error": body.detail};
+  const result = await collection.replaceOne({"id": body.id}, body, {"upsert": true});
+  return {"status": "success!"};
 };

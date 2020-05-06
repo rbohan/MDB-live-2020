@@ -1,17 +1,17 @@
-// main worker function which modifies clusters according to the details in the 'body' input parameter
-exports = function(project, username, password, clusters, body)
+// main worker function which modifies clusters according to the details in the 'payload' input parameter
+exports = async function(project, username, password, clusters, payload)
 {
   let promises = [];
   clusters.forEach(cluster => {
     // add a catch as we do not want the Promise to terminate early on error
-    promises.push(modifyCluster(project, username, password, cluster, body)
-      .catch(err => { return { "cluster": cluster, "error": err.message }; }));
+    promises.push(modifyCluster(project, username, password, cluster, payload)
+      .catch(err => { return err; }));
   });
-  return Promise.all(promises)
-    .then(results => { return { "status": "success!", "results": results }; });
+  const results = await Promise.all(promises);
+  return { "status": "complete!", "results": results };
 };
 
-modifyCluster = function(project, username, password, cluster, body) {
+modifyCluster = async function(project, username, password, cluster, payload) {
   const args = { 
     "scheme": `https`, 
     "host": `cloud.mongodb.com`, 
@@ -20,13 +20,10 @@ modifyCluster = function(project, username, password, cluster, body) {
     "password": password,
     "digestAuth": true,
     "headers": { "Content-Type": ["application/json"] }, 
-    "body": JSON.stringify(body)
+    "body": JSON.stringify(payload)
   };
   
-  return context.http.patch(args)
-    .then(response => {
-      const body = JSON.parse(response.body.text());
-      if (response.statusCode != 200) throw body.detail;
-      return { "cluster": cluster, "response": body };
-    });
+  const response = await context.http.patch(args);
+  const body = JSON.parse(response.body.text());
+  return {"cluster": cluster, "response": body};
 };
