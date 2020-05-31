@@ -1,6 +1,6 @@
 # Atlas Billing & Automation
 
-This project enables you to build your own automated MongoDB Atlas Billing Dashboard. It provides the code referenced in my MongoDB.live 2020 talk ("Tracking and Managing Your Spend on MongoDB Atlas"), including the extended functions referenced towards the end.
+This project enables you to build your own automated MongoDB Atlas Billing Dashboard. It provides the code referenced in my MongoDB.live 2020 talk ("Tracking and Managing Your Spend on MongoDB Atlas"), including the extended functions referenced towards the end of the presentation.
 
 # Overview
 
