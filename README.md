@@ -47,7 +47,7 @@ To deploy the code in this repo you'll need several API Keys.
 
 The main API key will be used to retrieve the Billing data from the target Organization.
 
-The second key can be used to enable Automation for specific clusters in your Orgs/Projects (allowing you to pause/unpause the clusters on a schedule). Note you can use a single Org-level key for both functions if you with you automation clusters in the same Org you wish you retrieve the billing data for.
+The second key can be used to enable Automation for specific clusters in your Orgs/Projects (allowing you to pause/unpause the clusters on a schedule). Note you can use a single Org-level key for both functions if you want to automate clusters in the same Org you wish to retrieve the billing data for. If the clusters are in a different Org you will need two separate keys.
 
 An additional key will be required to import the code in this repo into your own Stitch application.
 
