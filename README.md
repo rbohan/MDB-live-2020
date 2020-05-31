@@ -189,3 +189,7 @@ Additional enhancements are possible such as:
 
 - Adding a Webhook to provide an endpoint allowing you to pause/unpase specific clusters on demand.
 - Extend the Billing code to retrieve data from multiple MongoDB Atlas Orgs.
+
+# Postscript
+
+If there are any errors or corrections required for this repo please feel free to send me a pull-request.
