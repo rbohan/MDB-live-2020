@@ -39,7 +39,7 @@ The code in this repo contains several functions, values & secrets and triggers 
 You will need the following before you can use this code:
 
 - A MongoDB Atlas cluster (an M0 cluster will do). This will be used to store the billing data we gather. (To minimize network data transfer create this M0 cluster on AWS, in the 'us-east-1', 'us-west-2', 'eu-east-1' or 'ap-southeast-2' regions).
-- A local clone of this repo so you can import it into your MongoDB Stitch application.
+- A local clone of this repo so you can import it into your MongoDB Realm application.
 
 # Setup
 
@@ -49,7 +49,7 @@ The main API key will be used to retrieve the Billing data from the target Organ
 
 The second key can be used to enable Automation for specific clusters in your Orgs/Projects (allowing you to pause/unpause the clusters on a schedule). Note you can use a single Org-level key for both functions if you want to automate clusters in the same Org you wish to retrieve the billing data for. If the clusters are in a different Org you will need two separate keys.
 
-An additional key will be required to import the code in this repo into your own Stitch application.
+An additional key will be required to import the code in this repo into your own Realm application.
 
 ## Create an API key for the Billing function
 
@@ -96,23 +96,23 @@ Before moving on we will record the Project ID:
 2. Select 'Settings' on the left navigation bar.
 4. Record the 'Project ID' from the 'Project Settings' tab.
 
-## Create an API key for the Stitch CLI
+## Create an API key for the Realm CLI
 
-To import the code in this repo into your own Stitch app you will need an additional Project-level API key associated with the Project where your Billing cluster resides.
+To import the code in this repo into your own Realm app you will need an additional Project-level API key associated with the Project where your Billing cluster resides.
 
 1. Navigate to the Project where you created the MongoDB cluster to store the Billing data.
 2. Create a new API key following the steps above but with the `Project Owner` role.
 
-## Download the Stitch CLI Client
+## Download the Realm CLI Client (Version 2)
 
-Follow the instructions on [this page](https://docs.mongodb.com/stitch/deploy/stitch-cli-reference/) to download the Stitch CLI for your platform.
+Follow the instructions on [this page](https://docs.mongodb.com/realm/deploy/realm-cli-reference/) to download the Realm CLI for your platform.
 
-## Import the code into your Stitch App
+## Import the code into your Realm App
 
-1. [Log in via the Stitch CLI](https://docs.mongodb.com/stitch/deploy/stitch-cli-reference/#authenticate-a-cli-user) using the details of the key created above:
-`stitch-cli login --api-key=my-api-key --private-api-key=my-private-api-key`
-2. From the root of the local github clone run the following to create a new Stitch App:
-`stitch-cli import`
+1. [Log in via the Realm CLI](https://docs.mongodb.com/realm/deploy/realm-cli-reference/#authentication) using the details of the key created above:
+`realm-cli login --api-key="<my api key>" --private-api-key="<my private api key>"`
+2. From the root of the local github clone run the following to create a new Realm App:
+`realm-cli import`
 
 Answer the questions e.g.:
 - this app does not exist yet: would you like to create a new app? [y/n]: `y`
@@ -126,9 +126,9 @@ Note: this is expected to fail with an error message similar to the follow, as s
 
 ## Create Secrets
 
-While the previous command failed, it did create a new Stitch App. Navigate back to the Stitch App page (refresh if required) and select the new `billing` App.
+While the previous command failed, it did create a new Realm App. Navigate back to the Realm App page (refresh if required) and select the new `billing` App.
 
-With the Stitch App selected we can create the missing Secrets:
+With the Realm App selected we can create the missing Secrets:
 
 1. Switch to `Values & Secrets` on the left navigation bar
 2. Click on the `Secrets` tab.
@@ -140,10 +140,10 @@ With the Stitch App selected we can create the missing Secrets:
 - `auto-usernameSecret`: the Public API key details for that Project.
 - `auto-passwordSecret`: the Private API key details for that Project.
 
-## Redeploy the Stitch App
+## Redeploy the Realm App
 
 Now that we have our Secrets in place we can redeploy our App:
-`stitch-cli import --strategy=replace`
+`realm-cli import --remote <app_id>`
 
 Select '`y`' to confirm you want to repace the existing application.
 
